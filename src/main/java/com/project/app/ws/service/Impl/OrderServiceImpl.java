@@ -46,7 +46,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderDTO getOrder(String orderId) {
         OrderEntity order = orderRepository.findByOrderId(orderId);
         if(order == null) {
-            throw new OrderServiceException("Order Not Found");
+            new OrderServiceException("Order Not Found");
         }
 
         return modelMapper.map(order, OrderDTO.class);

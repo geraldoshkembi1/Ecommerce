@@ -2,6 +2,7 @@ package com.project.app.ws.security;
 
 import com.project.app.ws.io.repositories.UserRepository;
 import com.project.app.ws.service.UserService;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -9,6 +10,13 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.util.Arrays;
 
 @EnableWebSecurity
 public class WebSecurity extends WebSecurityConfigurerAdapter {
@@ -23,19 +31,20 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
     }
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable().authorizeRequests()
-                .antMatchers(HttpMethod.POST, SecurityConstants.SIGN_UP_URL).permitAll()
-                .antMatchers(HttpMethod.GET, SecurityConstants.VERIFICATION_EMAIL_URL).permitAll()
-                .antMatchers(HttpMethod.POST, SecurityConstants.PASSWORD_RESET_REQUEST_URL).permitAll()
-                .antMatchers(HttpMethod.POST, SecurityConstants.PASSWORD_RESET_URL).permitAll()
-                .antMatchers(HttpMethod.POST, SecurityConstants.CATEGORY_URL).permitAll()
-                .antMatchers(HttpMethod.GET, SecurityConstants.CATEGORY_URL).permitAll()
-                .antMatchers(HttpMethod.POST, SecurityConstants.PRODUCT_URL).permitAll()
-                .antMatchers(HttpMethod.GET, SecurityConstants.PRODUCT_URL).permitAll()
-                .antMatchers(HttpMethod.POST, SecurityConstants.ORDER_URL).permitAll()
-                .antMatchers(HttpMethod.GET, SecurityConstants.ORDER_URL).permitAll()
-                .antMatchers(HttpMethod.POST, SecurityConstants.CART_URL).permitAll()
-                .antMatchers(HttpMethod.GET, SecurityConstants.PRODUCT_URL+"/category/**").permitAll()
+        http
+                .cors().and()
+                .csrf().disable().authorizeRequests()
+                .antMatchers(HttpMethod.POST, SecurityConstants.SIGN_UP_ENDPOINT).permitAll()
+                .antMatchers(HttpMethod.GET, SecurityConstants.VERIFICATION_EMAIL_ENDPOINT).permitAll()
+                .antMatchers(HttpMethod.POST, SecurityConstants.PASSWORD_RESET_REQUEST_ENDPOINT).permitAll()
+                .antMatchers(HttpMethod.POST, SecurityConstants.PASSWORD_RESET_ENDPOINT).permitAll()
+                .antMatchers(HttpMethod.POST, SecurityConstants.CATEGORY_ENDPOINT).permitAll()
+                .antMatchers(HttpMethod.GET, SecurityConstants.CATEGORY_ENDPOINT).permitAll()
+                .antMatchers(HttpMethod.POST, SecurityConstants.PRODUCT_ENDPOINT).permitAll()
+                .antMatchers(HttpMethod.GET, SecurityConstants.PRODUCT_ENDPOINT).permitAll()
+                .antMatchers(HttpMethod.POST, SecurityConstants.ORDER_ENDPOINT).permitAll()
+                .antMatchers(HttpMethod.GET, SecurityConstants.INVOICES_ENDPOINT).permitAll()
+                .antMatchers(HttpMethod.PUT, SecurityConstants.INVOICES_ENDPOINT).permitAll()
                 .anyRequest().authenticated().and()
                 .addFilter(getAuthenticationFilter())
                 .addFilter(new AuthorizationFilter(authenticationManager(), userRepository))
@@ -52,5 +61,16 @@ public class WebSecurity extends WebSecurityConfigurerAdapter {
         final AuthenticationFilter filter = new AuthenticationFilter(authenticationManager());
         filter.setFilterProcessesUrl("/users/login");
         return filter;
+    }
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/**")
+                        .allowedMethods("*")
+                        .exposedHeaders("authorization","userid","isadmin");
+            }
+        };
     }
 }

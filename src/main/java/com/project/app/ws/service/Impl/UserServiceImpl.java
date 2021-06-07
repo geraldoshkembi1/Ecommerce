@@ -19,7 +19,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -55,13 +54,15 @@ public class UserServiceImpl implements UserService {
     public UserDto createUser(UserDto user, boolean skipVerification) {
 
         if(userRepository.findByEmail(user.getEmail()) != null)
-            throw new UserServiceException("Record already exists");
+            throw new UserServiceException(ErrorMessages.RECORD_ALREADY_EXISTS.getErrorMessage());
 
-        for(int i=0; i < user.getAddresses().size(); i++) {
-            AddressDTO address = user.getAddresses().get(i);
-            address.setUserDetails(user);
-            address.setAddressId(utils.generateAddressId(30));
-            user.getAddresses().set(i,address);
+        if(user.getAddresses() != null) {
+            for (int i = 0; i < user.getAddresses().size(); i++) {
+                AddressDTO address = user.getAddresses().get(i);
+                address.setUserDetails(user);
+                address.setAddressId(utils.generateAddressId(30));
+                user.getAddresses().set(i, address);
+            }
         }
 
         UserEntity userEntity = modelMapper.map(user,UserEntity.class);
@@ -97,8 +98,12 @@ public class UserServiceImpl implements UserService {
         UserDto returnValue = new UserDto();
         UserEntity userEntity = userRepository.findByEmail(email);
         if(userEntity == null) throw new UsernameNotFoundException(email);
-
+        Collection<String> roles = new HashSet<>();
+        for(RoleEntity roleEntity : userEntity.getRoles()) {
+            roles.add(roleEntity.getName());
+        }
         BeanUtils.copyProperties(userEntity,returnValue);
+        returnValue.setRoles(roles);
         return returnValue;
     }
 

@@ -1,9 +1,9 @@
 package com.project.app.ws.exceptions;
 
-public class AddressServiceException extends RuntimeException {
+public class InvoiceServiceException extends RuntimeException{
     private static final long serialVersionID = 1L;
 
-    public AddressServiceException(String message) {
+    public InvoiceServiceException(String message) {
         super(message);
     }
 }
